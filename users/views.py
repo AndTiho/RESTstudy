@@ -6,5 +6,6 @@ from users.serializers import UserSerializer
 
 class UserViewSet(viewsets.ModelViewSet):
     """Контролер для модели пользователя"""
+
     serializer_class = UserSerializer
     queryset = User.objects.all()
