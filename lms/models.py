@@ -15,6 +15,7 @@ class Course(models.Model):
         ordering = ['title']
 
 class Lesson(models.Model):
+    """Модель для уроков"""
     title = models.CharField(max_length=150, verbose_name="Название")
     description = models.TextField(max_length=1000, verbose_name="Описания")
     preview = models.ImageField(upload_to='photos/', null=True, blank=True, verbose_name='Картинка')
