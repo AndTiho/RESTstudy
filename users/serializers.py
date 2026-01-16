@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from users.models import User
+from users.models import User, Payment
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -9,3 +9,10 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email", "is_staff", "phone_number", "country", "avatar"]
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    """Сериализация для модели платежей"""
+    class Meta:
+        model = Payment
+        fields = '__all__'

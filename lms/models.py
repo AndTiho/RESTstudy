@@ -23,11 +23,11 @@ class Lesson(models.Model):
     title = models.CharField(max_length=150, verbose_name="Название")
     description = models.TextField(max_length=1000, verbose_name="Описания")
     preview = models.ImageField(upload_to="photos/", null=True, blank=True, verbose_name="Картинка")
-    video_url = models.URLField(max_length=500, blank=True, null=True, verbose_name="Ссылка")
-    course = models.ForeignKey(Course, related_name="course", on_delete=models.PROTECT, verbose_name="Курс")
+    video_url = models.URLField(blank=True, null=True, verbose_name="Ссылка")
+    course = models.ForeignKey(Course, related_name="lessons", on_delete=models.PROTECT, verbose_name="Курс")
 
     def __str__(self):
-        return f"{self.title}. Курс {self.course}"
+        return f"{self.title} (курс: {self.course.title})"
 
     class Meta:
         verbose_name = "урок"
