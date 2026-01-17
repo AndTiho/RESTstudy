@@ -1,8 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models.enums import Choices
 
-from lms.models import Lesson, Course
+from lms.models import Course, Lesson
 
 
 class User(AbstractUser):
@@ -40,22 +39,29 @@ class Payment(models.Model):
     """
 
     PAYMENT_METHODS = [
-        ('cash', 'Наличные'),
-        ('transfer', 'Перевод на счёт'),
+        ("cash", "Наличные"),
+        ("transfer", "Перевод на счёт"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь платежа')
-    course = models.ForeignKey(Course, on_delete=models.SET_NULL, blank=True, null=True, verbose_name='Оплаченный курс')
-    lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, blank=True, null=True, verbose_name='Оплаченный урок')
-    payment_sum = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма платежа')
-    payment_date = models.DateTimeField(auto_now_add=True, verbose_name='Дата платежа')
-    payment_method = models.CharField(max_length=8, choices=PAYMENT_METHODS, default='transfer',
-                                      verbose_name='Вид платежа')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="payments", verbose_name="Пользователь платежа"
+    )
+    course = models.ForeignKey(
+        Course, on_delete=models.SET_NULL, blank=True, null=True, verbose_name="Оплаченный курс"
+    )
+    lesson = models.ForeignKey(
+        Lesson, on_delete=models.SET_NULL, blank=True, null=True, verbose_name="Оплаченный урок"
+    )
+    payment_sum = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма платежа")
+    payment_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата платежа")
+    payment_method = models.CharField(
+        max_length=8, choices=PAYMENT_METHODS, default="transfer", verbose_name="Вид платежа"
+    )
 
     def __str__(self):
-        return f'{self.user} - {self.course}{self.lesson}. {self.payment_sum} рублей.'
+        return f"{self.user} - {self.course}{self.lesson}. {self.payment_sum} рублей."
 
     class Meta:
-        verbose_name = 'платёж'
-        verbose_name_plural = 'платежи'
-        ordering = ['user']
+        verbose_name = "платёж"
+        verbose_name_plural = "платежи"
+        ordering = ["user"]
