@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.db import connection
 
 from lms.models import Course, Lesson
 from users.models import Payment, User
@@ -8,13 +9,26 @@ class Command(BaseCommand):
     help = "Add Users and their Payments (with links to Courses/Lessons)"
 
     def handle(self, *args, **options):
-        # Создаём пользователей
-        user_1, _ = User.objects.get_or_create(
-            email="moom200505@spam.ru", phone_number="+79151015846", password="12345"
-        )
-        user_2, _ = User.objects.get_or_create(
-            email="moom200505@notspam.ru", phone_number="+79101015846", password="54321"
-        )
+
+        User.objects.all().delete()
+        Payment.objects.all().delete()
+
+        with connection.cursor() as cursor:
+            cursor.execute("ALTER SEQUENCE users_user_id_seq RESTART WITH 1;")
+            cursor.execute("ALTER SEQUENCE users_payment_id_seq RESTART WITH 1;")
+
+        # Создаём пользователей с корректным хэшированием пароля
+        user_1, created = User.objects.get_or_create(email="moom200505@spam.ru", phone_number="+79151015846")
+        if created or not user_1.has_usable_password():
+            user_1.set_password("12345")  # ✅ Правильно: Django хэширует пароль
+            user_1.is_active = True
+            user_1.save()
+
+        user_2, created = User.objects.get_or_create(email="moom200505@notspam.ru", phone_number="+79101015846")
+        if created or not user_2.has_usable_password():
+            user_2.set_password("54321")
+            user_2.is_active = True
+            user_2.save()
 
         # Получаем существующие курсы и уроки из БД созданных кастомной командой add_materials
         try:
