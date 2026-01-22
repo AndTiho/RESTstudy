@@ -1,8 +1,12 @@
-from rest_framework import generics
+from rest_framework import generics, status
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from lms.models import Course, Lesson
+from lms.models import Course, Lesson, CourseSubscription
+from lms.paginators import MyPagination
 from lms.serializers import CourseSerializer, LessonSerializer
 from users.permissions import IsNotModerator, IsOwner, IsOwnerOrModerator
 
@@ -10,6 +14,7 @@ from users.permissions import IsNotModerator, IsOwner, IsOwnerOrModerator
 class CourseViewSet(ModelViewSet):
     """Для Курсов всё и сразу"""
     serializer_class = CourseSerializer
+    pagination_class = MyPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -40,6 +45,9 @@ class CourseViewSet(ModelViewSet):
         # Возвращаем список экземпляров разрешений
         return [permission() for permission in permission_classes]
 
+    def get_serializer_context(self):
+        return {'request': self.request}
+
 
 class LessonCreateAPIView(generics.CreateAPIView):
     """Создание урока (только для НЕ‑модераторов)."""
@@ -60,6 +68,7 @@ class LessonListAPIView(generics.ListAPIView):
     """
 
     serializer_class = LessonSerializer
+    pagination_class = MyPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -112,3 +121,35 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
         if user.groups.filter(name="moders").exists():
             return Lesson.objects.all()  # Модератор видит все уроки
         return Lesson.objects.filter(owner=user)  # Владелец — только свои
+
+
+class ToggleCourseSubscriptionView(APIView):
+    """
+    POST /api/courses/<course_id>/toggle-subscription/
+    Переключает подписку пользователя на курс:
+    """
+
+    def post(self, request, course_id):
+        user = request.user
+
+        course = get_object_or_404(Course, id=course_id)
+
+        subscription = CourseSubscription.objects.filter(
+            user=user,
+            course=course
+        )
+
+        if subscription.exists():
+            subscription.delete()
+            message = "Подписка удалена"
+            is_subscribed = False
+        else:
+            CourseSubscription.objects.create(user=user, course=course)
+            message = "Подписка добавлена"
+            is_subscribed = True
+
+        return Response({
+            "message": message,
+            "is_subscribed": is_subscribed,
+            "course_id": course.id
+        }, status=status.HTTP_200_OK)
