@@ -12,6 +12,7 @@ from .models import User
 
 class UserCreateAPIView(CreateAPIView):
     """Регистрация нового пользователя"""
+
     serializer_class = UserPrivateSerializer
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
@@ -77,4 +78,3 @@ class PaymentListAPIView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ["course", "lesson", "payment_method"]
     ordering_fields = ["payment_date"]
-

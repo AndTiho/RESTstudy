@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from lms.models import Course, Lesson, CourseSubscription
+from lms.models import Course, CourseSubscription, Lesson
 from lms.paginators import MyPagination
 from lms.serializers import CourseSerializer, LessonSerializer
 from users.permissions import IsNotModerator, IsOwner, IsOwnerOrModerator
@@ -13,6 +13,7 @@ from users.permissions import IsNotModerator, IsOwner, IsOwnerOrModerator
 
 class CourseViewSet(ModelViewSet):
     """Для Курсов всё и сразу"""
+
     serializer_class = CourseSerializer
     pagination_class = MyPagination
 
@@ -46,7 +47,7 @@ class CourseViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_serializer_context(self):
-        return {'request': self.request}
+        return {"request": self.request}
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
@@ -125,7 +126,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
 
 class ToggleCourseSubscriptionView(APIView):
     """
-    POST /api/courses/<course_id>/toggle-subscription/
+    POST /courses/<course_id>/toggle-subscription/
     Переключает подписку пользователя на курс:
     """
 
@@ -134,10 +135,7 @@ class ToggleCourseSubscriptionView(APIView):
 
         course = get_object_or_404(Course, id=course_id)
 
-        subscription = CourseSubscription.objects.filter(
-            user=user,
-            course=course
-        )
+        subscription = CourseSubscription.objects.filter(user=user, course=course)
 
         if subscription.exists():
             subscription.delete()
@@ -148,8 +146,6 @@ class ToggleCourseSubscriptionView(APIView):
             message = "Подписка добавлена"
             is_subscribed = True
 
-        return Response({
-            "message": message,
-            "is_subscribed": is_subscribed,
-            "course_id": course.id
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"message": message, "is_subscribed": is_subscribed, "course_id": course.id}, status=status.HTTP_200_OK
+        )

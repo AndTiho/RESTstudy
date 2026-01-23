@@ -10,8 +10,9 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = "__all__"
 
+
 class UserPrivateSerializer(serializers.ModelSerializer):
-    """Сериализация для модели пользователя"""
+    """Сериализация для приватной модели пользователя"""
 
     payment_history = PaymentSerializer(source="payments", read_only=True, many=True)
 
@@ -21,7 +22,7 @@ class UserPrivateSerializer(serializers.ModelSerializer):
 
 
 class UserPublicSerializer(serializers.ModelSerializer):
-    """Сериализация для модели пользователя"""
+    """Сериализация для публичной модели пользователя"""
 
     payment_history = PaymentSerializer(source="payments", read_only=True, many=True)
 
