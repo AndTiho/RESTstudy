@@ -54,7 +54,7 @@ class LessonCreateAPIView(generics.CreateAPIView):
     """Создание урока (только для НЕ‑модераторов)."""
 
     serializer_class = LessonSerializer
-    permission_classes = [IsNotModerator]
+    permission_classes = [IsAuthenticated, IsNotModerator]
 
     def perform_create(self, serializer):
         new_lesson = serializer.save()
@@ -86,12 +86,9 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
 
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [IsOwnerOrModerator]
+    permission_classes = [IsAuthenticated, IsOwnerOrModerator]
 
     def get_queryset(self):
-        # Ограничиваем доступ для не‑модераторов
-        if not self.request.user.groups.filter(name="moders").exists():
-            return Lesson.objects.filter(owner=self.request.user)
         return Lesson.objects.all()
 
 
@@ -103,25 +100,14 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
 
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [IsOwnerOrModerator]
-
-    def get_queryset(self):
-        if not self.request.user.groups.filter(name="moders").exists():
-            return Lesson.objects.filter(owner=self.request.user)
-        return Lesson.objects.all()
+    permission_classes = [IsAuthenticated, IsOwnerOrModerator]
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
     """Удаление урока (только владелец)."""
 
     queryset = Lesson.objects.all()
-    permission_classes = [IsOwner]
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name="moders").exists():
-            return Lesson.objects.all()  # Модератор видит все уроки
-        return Lesson.objects.filter(owner=user)  # Владелец — только свои
+    permission_classes = [IsAuthenticated, IsOwner]
 
 
 class ToggleCourseSubscriptionView(APIView):
@@ -129,6 +115,8 @@ class ToggleCourseSubscriptionView(APIView):
     POST /courses/<course_id>/toggle-subscription/
     Переключает подписку пользователя на курс:
     """
+
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, course_id):
         user = request.user
