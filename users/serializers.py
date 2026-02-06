@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from users.models import Payment, User
+from users.models import Payment, Price, User
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -28,4 +28,18 @@ class UserPublicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "is_active", "country", "avatar"]
+        fields = ["id", "is_active", "country", "avatar", "payment_history"]
+
+
+class PriceSerializer(serializers.ModelSerializer):
+
+    stripe_price_id = serializers.CharField(
+        max_length=100,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+    )
+
+    class Meta:
+        model = Price
+        fields = "__all__"

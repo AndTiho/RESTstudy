@@ -18,7 +18,15 @@ class CourseViewSet(ModelViewSet):
     pagination_class = MyPagination
 
     def get_queryset(self):
+
+        if getattr(self, "swagger_fake_view", False):
+            return Course.objects.none()
+
         user = self.request.user
+
+        if not user.is_authenticated:
+            return Course.objects.none()
+
         if user.groups.filter(name="moders").exists():
             return Course.objects.all()
 

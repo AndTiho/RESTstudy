@@ -65,3 +65,32 @@ class Payment(models.Model):
         verbose_name = "платёж"
         verbose_name_plural = "платежи"
         ordering = ["user"]
+
+
+class Price(models.Model):
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, blank=True, null=True, verbose_name="Курс", related_name="prices"
+    )
+    lesson = models.ForeignKey(
+        Lesson, on_delete=models.CASCADE, blank=True, null=True, verbose_name="Урок", related_name="prices"
+    )
+
+    stripe_price_id = models.CharField(max_length=100, verbose_name="ID цены в Stripe")
+    session_id = models.CharField(max_length=255, blank=True, null=True, verbose_name="Id сессии")
+
+    checkout_url = models.URLField(max_length=600, blank=True, null=True, verbose_name="Ссылка на оплату")
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, verbose_name="Пользователь")
+
+    class Meta:
+        verbose_name = "Оплата обучения"
+
+    def __str__(self):
+        return self.stripe_price_id
+
+    def save(self, *args, **kwargs):
+        # Автоматически заполняем stripe_price_id из курса/урока
+        if self.course and not self.stripe_price_id:
+            self.stripe_price_id = self.course.stripe_price_id
+        elif self.lesson and not self.stripe_price_id:
+            self.stripe_price_id = self.lesson.stripe_price_id
+        super().save(*args, **kwargs)
