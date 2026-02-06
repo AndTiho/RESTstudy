@@ -12,6 +12,7 @@ from .models import User
 
 class UserCreateAPIView(CreateAPIView):
     """Регистрация нового пользователя"""
+
     serializer_class = UserPrivateSerializer
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
