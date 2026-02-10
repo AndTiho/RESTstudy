@@ -10,6 +10,8 @@ class Course(models.Model):
     preview = models.ImageField(upload_to="photos/", null=True, blank=True, verbose_name="Картинка")
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     price = models.DecimalField(max_digits=10, blank=True, null=True, decimal_places=2, verbose_name="Стоимость курса")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания курса")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления курса")
 
     # поля для Страйпа
     stripe_product_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID продукта Stripe")
@@ -36,6 +38,8 @@ class Lesson(models.Model):
     )
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     price = models.DecimalField(max_digits=10, blank=True, null=True, decimal_places=2, verbose_name="Стоимость урока")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания урока")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления урока")
 
     # поля для Страйпа
     stripe_product_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID продукта Stripe")
