@@ -9,6 +9,11 @@ class Course(models.Model):
     description = models.TextField(max_length=1000, verbose_name="Описания")
     preview = models.ImageField(upload_to="photos/", null=True, blank=True, verbose_name="Картинка")
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    price = models.DecimalField(max_digits=10, blank=True, null=True, decimal_places=2, verbose_name="Стоимость курса")
+
+    # поля для Страйпа
+    stripe_product_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID продукта Stripe")
+    stripe_price_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID цены Stripe")
 
     def __str__(self):
         return self.title
@@ -30,6 +35,11 @@ class Lesson(models.Model):
         Course, related_name="lessons", null=True, blank=True, on_delete=models.PROTECT, verbose_name="Курс"
     )
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    price = models.DecimalField(max_digits=10, blank=True, null=True, decimal_places=2, verbose_name="Стоимость урока")
+
+    # поля для Страйпа
+    stripe_product_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID продукта Stripe")
+    stripe_price_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID цены Stripe")
 
     def __str__(self):
         return f"{self.title} (курс: {self.course.title})"
