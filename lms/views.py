@@ -2,12 +2,15 @@ from rest_framework import generics, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from lms.models import Course, CourseSubscription, Lesson
 from lms.paginators import MyPagination
 from lms.serializers import CourseSerializer, LessonSerializer
+from lms.services import send_course_update_notification
+from lms.tasks import send_course_updated_email
 from users.permissions import IsNotModerator, IsOwner, IsOwnerOrModerator
 
 
@@ -34,6 +37,17 @@ class CourseViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """Переопределён метод update для отравки письма при изменении курса"""
+        course = self.get_object()
+        response = super().update(request, *args, **kwargs)
+
+        if response.status_code == status.HTTP_200_OK:
+            send_course_update_notification(course)
+
+        return response
+
 
     def get_permissions(self):
         permission_classes = []
@@ -109,6 +123,15 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsOwnerOrModerator]
+
+    def perform_update(self, serializer):
+        """Переопределённый метод update урока, для сохранения в поле course.update_at
+        для реализации оправки оповещения о изменения курса при изменении урока
+        """
+        lesson = serializer.save()
+        lesson.course.save(update_fields=[])
+
+        send_course_update_notification(lesson.course)
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
