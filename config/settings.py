@@ -14,6 +14,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework",
     "django_filters",
+    'django_celery_beat',
     "users",
     "lms",
 ]
@@ -148,6 +150,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 AUTH_USER_MODEL = "users.User"
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
@@ -160,3 +163,17 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOW_ALL_ORIGINS = False
 
 STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
+
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_TIMEZONE = "UTC"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+
+CELERY_BEAT_SCHEDULE = {
+    'check-login-every-day': {
+        'task': 'users.tasks.check_login',
+        'schedule': crontab(hour=0, minute=0) # hour=0, minute=0 minute='*/1'
+    },
+}
