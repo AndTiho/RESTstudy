@@ -3,8 +3,14 @@ from rest_framework.routers import DefaultRouter
 
 from lms import views
 from lms.apps import LmsConfig
-from lms.views import (CourseViewSet, LessonCreateAPIView, LessonDestroyAPIView, LessonListAPIView,
-                       LessonRetrieveAPIView, LessonUpdateAPIView)
+from lms.views import (
+    CourseViewSet,
+    LessonCreateAPIView,
+    LessonDestroyAPIView,
+    LessonListAPIView,
+    LessonRetrieveAPIView,
+    LessonUpdateAPIView,
+)
 
 app_name = LmsConfig.name
 

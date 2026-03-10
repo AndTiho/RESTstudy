@@ -22,13 +22,7 @@ def send_course_update_notification(course: Course, force: bool = False) -> None
 
 def _send_notification(course: Course) -> None:
     """Внутренняя функция для отправки письма."""
-    subscriber_emails = [
-        sub.user.email
-        for sub in course.subscribers.select_related('user').all()
-    ]
+    subscriber_emails = [sub.user.email for sub in course.subscribers.select_related("user").all()]
 
     if subscriber_emails:
-        send_course_updated_email.delay(
-            subscriber_emails=subscriber_emails,
-            course_title=course.title
-        )
+        send_course_updated_email.delay(subscriber_emails=subscriber_emails, course_title=course.title)

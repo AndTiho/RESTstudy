@@ -2,7 +2,6 @@ from rest_framework import generics, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
@@ -10,7 +9,6 @@ from lms.models import Course, CourseSubscription, Lesson
 from lms.paginators import MyPagination
 from lms.serializers import CourseSerializer, LessonSerializer
 from lms.services import send_course_update_notification
-from lms.tasks import send_course_updated_email
 from users.permissions import IsNotModerator, IsOwner, IsOwnerOrModerator
 
 
@@ -48,10 +46,8 @@ class CourseViewSet(ModelViewSet):
 
         return response
 
-
     def get_permissions(self):
         permission_classes = []
-
         if self.action == "create":
             # Любой авторизованный, но НЕ модератор
             permission_classes = [IsAuthenticated, IsNotModerator]

@@ -3,6 +3,7 @@ import os
 from celery import shared_task
 from django.core.mail import send_mail
 
+
 @shared_task
 def send_course_updated_email(subscriber_emails, course_title):
     """
@@ -22,5 +23,5 @@ def send_course_updated_email(subscriber_emails, course_title):
         message="Курс,на который вы подписаны, обновился",
         from_email=os.getenv("EMAIL_HOST_USER"),
         recipient_list=subscriber_emails,
-        fail_silently=True
+        fail_silently=True,
     )
