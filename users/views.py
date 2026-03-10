@@ -23,11 +23,6 @@ class UserCreateAPIView(CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
 
-    def perform_create(self, serializer):
-        user = serializer.save(is_active=True)
-        user.set_password(user.password)
-        user.save()
-
 
 class UserListView(ListAPIView):
     """Список пользователей"""
