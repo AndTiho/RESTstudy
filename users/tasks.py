@@ -1,9 +1,11 @@
 from datetime import timedelta
-from django.utils import timezone
-from celery import shared_task
 
+from celery import shared_task
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+
 User = get_user_model()
+
 
 @shared_task
 def check_login():
@@ -11,7 +13,7 @@ def check_login():
     если last_login был более 30 дней назад"""
 
     out_off_date = timezone.now() - timedelta(days=30)
-    inactive_users = User.objects.filter(last_login__lt=out_off_date,is_active=True)
+    inactive_users = User.objects.filter(last_login__lt=out_off_date, is_active=True)
 
     # Вариант для увеличения производительности, пусть будет тут
     # inactive_users.update(is_active=False)
