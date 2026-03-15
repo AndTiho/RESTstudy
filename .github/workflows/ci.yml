@@ -126,6 +126,24 @@ jobs:
           
             docker stop celery-beat || true
             docker rm -f celery-beat || true
+          
+            docker stop db || true
+            docker rm db || true
+          
+            docker stop redis || true
+            docker rm redis || true
+          
+            docker run -d \
+              --name db \
+              --network appnet \
+              --env-file /home/adminmoon/KoreDjango/.env \
+              -v postgres_data:/var/lib/postgresql/data \
+              postgres:16
+            
+            docker run -d \
+              --name redis \
+              --network appnet \
+              redis:7
         
             docker run -d \
               --name myapp \
