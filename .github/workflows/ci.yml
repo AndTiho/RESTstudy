@@ -136,33 +136,34 @@ jobs:
             docker run -d \
               --name db \
               --network appnet \
-              --env-file /home/adminmoon/KoreDjango/.env \
+              --env-file ~/.env \
               -v postgres_data:/var/lib/postgresql/data \
               postgres:16
             
             docker run -d \
               --name redis \
+              --env-file ~/.env \
               --network appnet \
               redis:7
         
             docker run -d \
               --name myapp \
               --network appnet \
-              --env-file /home/adminmoon/KoreDjango/.env \
+              --env-file ~/.env \
               -p 80:8000 \
               ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }}
           
             docker run -d \
               --name celery \
               --network appnet \
-              --env-file /home/adminmoon/KoreDjango/.env \
+              --env-file ~/.env \
               ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }} \
               celery -A config worker -l info
             
             docker run -d \
               --name celery-beat \
               --network appnet \
-              --env-file /home/adminmoon/KoreDjango/.env \
+              --env-file ~/.env \
               ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }} \
               celery -A config beat -l info
             
