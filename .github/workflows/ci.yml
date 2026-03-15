@@ -114,12 +114,16 @@ jobs:
       - name: Deploy on server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }}
-      
-            docker network create appnet || true
-      
-            # --- postgres (запускаем только если его нет)
-            if [ "$(docker ps -aq -f name=db)" ]; then
+            set -e
+
+            IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }}"
+
+            docker pull "$IMAGE"
+
+            docker network inspect appnet >/dev/null 2>&1 || docker network create appnet
+
+            # postgres
+            if docker ps -aq -f name=^db$ | grep -q .; then
               echo "Postgres already exists"
             else
               docker run -d \
@@ -129,9 +133,9 @@ jobs:
                 -v postgres_data:/var/lib/postgresql/data \
                 postgres:16
             fi
-      
-            # --- redis (тоже только если нет)
-            if [ "$(docker ps -aq -f name=redis)" ]; then
+
+            # redis
+            if docker ps -aq -f name=^redis$ | grep -q .; then
               echo "Redis already exists"
             else
               docker run -d \
@@ -139,39 +143,41 @@ jobs:
                 --network appnet \
                 redis:7
             fi
-      
-            # --- останавливаем старое приложение
-            docker stop myapp || true
-            docker rm -f myapp || true
-      
-            docker stop celery || true
-            docker rm -f celery || true
-      
-            docker stop celery-beat || true
-            docker rm -f celery-beat || true
-      
-            # --- запускаем новое приложение
+
+            # удаляем старые контейнеры
+            for c in myapp celery celery-beat; do
+              docker rm -f "$c" 2>/dev/null || true
+            done
+
+            # ждём, пока они реально исчезнут
+            for c in myapp celery celery-beat; do
+              while docker ps -a --format '{{.Names}}' | grep -Fxq "$c"; do
+                echo "Waiting for $c to be removed..."
+                sleep 1
+              done
+            done
+
+            # приложение
             docker run -d \
               --name myapp \
               --network appnet \
               --env-file ~/.env \
               -p 80:8000 \
-              ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }}
-      
-            # --- celery worker
+              "$IMAGE"
+
+            # celery worker
             docker run -d \
               --name celery \
               --network appnet \
               --env-file ~/.env \
-              ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }} \
+              "$IMAGE" \
               celery -A config worker -l info
-      
-            # --- celery beat
+
+            # celery beat
             docker run -d \
               --name celery-beat \
               --network appnet \
               --env-file ~/.env \
-              ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }} \
+              "$IMAGE" \
               celery -A config beat -l info
-      
           EOF
