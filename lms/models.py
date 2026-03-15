@@ -67,7 +67,10 @@ class CourseSubscription(models.Model):
     """Модель сохраняющая данные о подписке пользователя на курс"""
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="subscriptions", verbose_name="Подписки пользователся"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="subscriptions",
+        verbose_name="Подписки пользователся",
     )
     course = models.ForeignKey(
         Course, on_delete=models.CASCADE, related_name="subscribers", verbose_name="Подписчики курса"
