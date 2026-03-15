@@ -14,7 +14,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.10'
+          python-version: '3.13'
 
       - name: Install dependencies
         run: |
@@ -48,11 +48,13 @@ jobs:
           - 6379:6379
 
     env:
+      SECRET_KEY: test-secret-key
       POSTGRES_DB: test_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_HOST: 127.0.0.1
       POSTGRES_PORT: 5432
+      CELERY_BROKER_URL: redis://127.0.0.1:6379/0
 
     steps:
       - name: Check out code
@@ -113,14 +115,37 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }}
-      
+            
+            docker network create appnet || true
+            
             docker stop reststudy || true
             docker rm reststudy || true
-      
+            
+            docker stop celery || true
+            docker rm -f celery || true
+          
+            docker stop celery-beat || true
+            docker rm -f celery-beat || true
+        
             docker run -d \
-              --name db \
-              --env-file ~/.env \
-              -v postgres_data:/var/lib/postgresql/data \
-              postgres:16
+              --name myapp \
+              --network appnet \
+              --env-file /home/adminmoon/KoreDjango/.env \
+              -p 80:8000 \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }}
+          
+            docker run -d \
+              --name celery \
+              --network appnet \
+              --env-file /home/adminmoon/KoreDjango/.env \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }} \
+              celery -A config worker -l info
+            
+            docker run -d \
+              --name celery-beat \
+              --network appnet \
+              --env-file /home/adminmoon/KoreDjango/.env \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }} \
+              celery -A config beat -l info
             
           EOF
