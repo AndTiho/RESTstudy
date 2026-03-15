@@ -115,56 +115,63 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }}
-            
+      
             docker network create appnet || true
-            
-            docker stop reststudy || true
-            docker rm reststudy || true
-            
+      
+            # --- postgres (запускаем только если его нет)
+            if [ "$(docker ps -aq -f name=db)" ]; then
+              echo "Postgres already exists"
+            else
+              docker run -d \
+                --name db \
+                --network appnet \
+                --env-file ~/.env \
+                -v postgres_data:/var/lib/postgresql/data \
+                postgres:16
+            fi
+      
+            # --- redis (тоже только если нет)
+            if [ "$(docker ps -aq -f name=redis)" ]; then
+              echo "Redis already exists"
+            else
+              docker run -d \
+                --name redis \
+                --network appnet \
+                redis:7
+            fi
+      
+            # --- останавливаем старое приложение
+            docker stop myapp || true
+            docker rm -f myapp || true
+      
             docker stop celery || true
             docker rm -f celery || true
-          
+      
             docker stop celery-beat || true
             docker rm -f celery-beat || true
-          
-            docker stop db || true
-            docker rm db || true
-          
-            docker stop redis || true
-            docker rm redis || true
-          
-            docker run -d \
-              --name db \
-              --network appnet \
-              --env-file ~/.env \
-              -v postgres_data:/var/lib/postgresql/data \
-              postgres:16
-            
-            docker run -d \
-              --name redis \
-              --env-file ~/.env \
-              --network appnet \
-              redis:7
-        
+      
+            # --- запускаем новое приложение
             docker run -d \
               --name myapp \
               --network appnet \
               --env-file ~/.env \
               -p 80:8000 \
               ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }}
-          
+      
+            # --- celery worker
             docker run -d \
               --name celery \
               --network appnet \
               --env-file ~/.env \
               ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }} \
               celery -A config worker -l info
-            
+      
+            # --- celery beat
             docker run -d \
               --name celery-beat \
               --network appnet \
               --env-file ~/.env \
               ${{ secrets.DOCKER_HUB_USERNAME }}/reststudy:${{ github.sha }} \
               celery -A config beat -l info
-            
+      
           EOF
