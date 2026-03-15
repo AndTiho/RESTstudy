@@ -30,8 +30,11 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.getenv("DEBUG") == "True" else False
 
-ALLOWED_HOSTS = ["158.160.79.58"]
-CSRF_TRUSTED_ORIGINS = ["https://158.160.79.58"]
+ALLOWED_HOSTS = ["158.160.79.58",
+                 "localhost",
+                 "127.0.0.1",
+                 ]
+CSRF_TRUSTED_ORIGINS = ["http://158.160.79.58"]
 # Application definition
 
 INSTALLED_APPS = [
