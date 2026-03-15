@@ -2,8 +2,9 @@ FROM python:3.13-slim
 
 WORKDIR /reststudy
 
-RUN apt-get update \
-    && apt-get install -y gcc build-essential \
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install poetry
