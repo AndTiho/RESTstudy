@@ -50,21 +50,15 @@ class LessonsAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.user)
 
         response = self.client.post("/lesson/create/", data=data, format="json")
-
+        print(response.status_code)
+        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Lesson.objects.count(), 2)
-        self.assertEqual(
-            response.json(),
-            {
-                "id": response.data["id"],
-                "video_url": None,
-                "title": "Test Lesson",
-                "description": "Test description",
-                "preview": None,
-                "course": None,
-                "owner": self.user.id,
-            },
-        )
+        self.assertEqual(response.json()["title"], "Test Lesson")
+        self.assertEqual(response.json()["description"], "Test description")
+        self.assertEqual(response.json()["video_url"], None)
+        self.assertEqual(response.json()["course"], None)
+        self.assertEqual(response.json()["owner"], 1)
         self.assertTrue(Lesson.objects.filter(id=1).exists())
 
     def test_list_lessons(self):

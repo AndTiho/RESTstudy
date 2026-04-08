@@ -1,6 +1,8 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models
-from rest_framework.utils import timezone
+from django.utils import timezone
 
 
 class Course(models.Model):
@@ -22,7 +24,7 @@ class Course(models.Model):
         """Возвращает True, если курс обновлялся менее чем N часов назад."""
         if not self.updated_at:
             return False
-        return timezone.now() - self.updated_at < timezone.timedelta(hours=hours)
+        return timezone.now() - self.updated_at < timedelta(hours=hours)
 
     def __str__(self):
         return self.title
@@ -65,7 +67,10 @@ class CourseSubscription(models.Model):
     """Модель сохраняющая данные о подписке пользователя на курс"""
 
     user = models.ForeignKey(
-        "users.User", on_delete=models.CASCADE, related_name="subscriptions", verbose_name="Подписки пользователся"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="subscriptions",
+        verbose_name="Подписки пользователся",
     )
     course = models.ForeignKey(
         Course, on_delete=models.CASCADE, related_name="subscribers", verbose_name="Подписчики курса"

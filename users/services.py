@@ -15,6 +15,9 @@ def create_stripe_product_and_price(instance):
     """
     # Определяем тип объекта
     is_course = isinstance(instance, Course)
+    price_value = instance.price
+    if price_value is None:
+        return None, None
 
     # Название продукта
     product_name = f"Курс: {instance.title}" if is_course else f"Урок: {instance.title}"
